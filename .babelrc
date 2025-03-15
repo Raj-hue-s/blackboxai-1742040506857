@@ -1,0 +1,36 @@
+{
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "node": "current",
+        "browsers": [
+          "last 2 versions",
+          "> 1%",
+          "not dead"
+        ]
+      },
+      "modules": "auto",
+      "useBuiltIns": "usage",
+      "corejs": 3
+    }]
+  ],
+  "plugins": [
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-object-rest-spread"
+  ],
+  "env": {
+    "test": {
+      "plugins": ["@babel/plugin-transform-modules-commonjs"]
+    },
+    "production": {
+      "plugins": [
+        ["transform-remove-console", {
+          "exclude": ["error", "warn"]
+        }]
+      ]
+    }
+  },
+  "comments": false,
+  "minified": true
+}
