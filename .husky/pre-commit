@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged
+npx lint-staged
+
+# Run tests
+npm test -- --bail --findRelatedTests
+
+# Check for environment variables
+if ! grep -q "JWT_SECRET" .env; then
+    echo "Error: JWT_SECRET is missing in .env file"
+    exit 1
+fi
+
+if ! grep -q "EMERGENCY_SECRET" .env; then
+    echo "Error: EMERGENCY_SECRET is missing in .env file"
+    exit 1
+fi
+
+# Check for large files
+MAX_SIZE_KB=5000
+find . -type f -size +${MAX_SIZE_KB}k ! -path "./node_modules/*" ! -path "./dist/*" ! -path "./.git/*" -exec du -h {} \; | while read size file; do
+    echo "Warning: $file is larger than ${MAX_SIZE_KB}KB"
+done
+
+# Check for sensitive data
+if git diff --cached | grep -i "password\|secret\|key\|token" > /dev/null; then
+    echo "Warning: Possible sensitive data detected in commit"
+    exit 1
+fi
+
+# Run security audit
+npm audit
+
+# Validate JSON files
+find . -name "*.json" ! -path "./node_modules/*" ! -path "./dist/*" -exec sh -c 'if ! jq "." "{}" >/dev/null 2>&1; then echo "Invalid JSON: {}"; exit 1; fi' \;
